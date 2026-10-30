@@ -32,7 +32,7 @@ describe('result formatting', () => {
     expect(DOUGH_WARNING_LABELS['invalid-flour-share-total'])
       .toBe('Flour shares must total 100% to show individual flour quantities.')
     expect(DOUGH_WARNING_LABELS['preferment-allocation-exceeded'])
-      .toBe('Preferment flour allocations exceed 100% of the recipe flour.')
+      .toBe('Preferment flour or water allocations exceed the available recipe amounts.')
     expect(DOUGH_WARNING_LABELS['excessive-leavening'])
       .toBe('The preferment leaves less than 25% of the calculated yeast for the main dough.')
   })

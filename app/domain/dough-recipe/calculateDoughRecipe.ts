@@ -192,7 +192,7 @@ export function calculateDoughRecipe(input: DoughRecipeInput): DoughRecipeResult
       && preferments.autolysisFlourPercent + preferments.poolishFlourPercent > 100)
     || (preferments.bigaEnabled
       && preferments.autolysisFlourPercent + preferments.bigaFlourPercent > 100)
-  )
+  ) || mainDoughWaterGrams < 0
   if (allocationExceeded) warnings.push('preferment-allocation-exceeded')
 
   if (hasYeastPreferment && yeastAfterAllocation < 0.25 * yeastGrams) {

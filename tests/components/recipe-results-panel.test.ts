@@ -12,13 +12,30 @@ describe('RecipeResultsPanel', () => {
     input.ingredients.flourShares = [40, 40]
     const result = calculateDoughRecipe(input)
     const wrapper = mount(RecipeResultsPanel, {
-      props: { result, errors: {}, targetLabel: '1 ball · 250 g' }
+      props: { result, errors: {}, targetLabel: '1 ball · 250 g', yeastType: input.yeast.type }
     })
 
     expect(wrapper.text()).toContain('Total flour')
     expect(wrapper.text()).toContain('Water')
+    expect(wrapper.text()).toContain('Main dough yeast')
     expect(wrapper.text()).toContain(DOUGH_WARNING_LABELS['invalid-flour-share-total'])
     expect(wrapper.get('[aria-label="Flour 1 amount"]').text()).toBe('–')
+  })
+
+  it.each(['LMS', 'LML'] as const)('labels %s quantity as sourdough starter', (yeastType) => {
+    const input = createDefaultDoughRecipeInput()
+    input.yeast.type = yeastType
+    const wrapper = mount(RecipeResultsPanel, {
+      props: {
+        result: calculateDoughRecipe(input),
+        errors: {},
+        targetLabel: '1 ball · 250 g',
+        yeastType
+      }
+    })
+
+    expect(wrapper.text()).toContain('Sourdough starter')
+    expect(wrapper.text()).not.toContain('Main dough yeast')
   })
 
   it('withholds calculated quantities when field validation fails', () => {
@@ -26,7 +43,8 @@ describe('RecipeResultsPanel', () => {
       props: {
         result: null,
         errors: { 'target.firstBallCount': 'Ball count is required.' },
-        targetLabel: 'Fix the highlighted inputs'
+        targetLabel: 'Fix the highlighted inputs',
+        yeastType: 'LBF'
       }
     })
 

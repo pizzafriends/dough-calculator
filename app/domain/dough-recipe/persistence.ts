@@ -7,7 +7,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 
-const isValidFlourShare = (value: unknown): value is number =>
+export const isValidFlourShare = (value: unknown): value is number =>
   isFiniteNumber(value) && Number.isInteger(value) && value >= 1 && value <= 99
 
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean'

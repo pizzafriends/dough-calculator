@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { createDefaultDoughRecipeInput } from '../../app/domain/dough-recipe/defaults'
+import { isDoughRecipeInput } from '../../app/domain/dough-recipe/persistence'
 import {
   applyDoughStyle,
   setFlourCount,
@@ -85,6 +86,36 @@ describe('dough recipe state transitions', () => {
     expect(result.fermentation.controlledTemperature).toBe(39)
   })
 
+  it('normalizes invalid disabled values in Fahrenheit and after style or preferment transitions', () => {
+    const fahrenheitInput = createDefaultDoughRecipeInput()
+    fahrenheitInput.fermentation.controlledTemperature = Number.NaN
+
+    const fahrenheit = setTemperatureUnit(fahrenheitInput, 'F')
+
+    expect(fahrenheit.fermentation.controlledTemperature).toBe(41)
+    expect(isDoughRecipeInput(fahrenheit)).toBe(true)
+
+    const invalidBiga = createDefaultDoughRecipeInput()
+    invalidBiga.preferments.bigaEnabled = true
+    invalidBiga.preferments.bigaFlourPercent = Number.NaN
+
+    const teglia = applyDoughStyle(invalidBiga, 'Teglia')
+
+    expect(teglia.preferments.bigaEnabled).toBe(false)
+    expect(teglia.preferments.bigaFlourPercent).toBe(30)
+    expect(isDoughRecipeInput(teglia)).toBe(true)
+
+    const invalidPoolish = createDefaultDoughRecipeInput()
+    invalidPoolish.preferments.poolishEnabled = true
+    invalidPoolish.preferments.poolishFlourPercent = Number.NaN
+
+    const withoutPoolish = togglePreferment(invalidPoolish, 'poolish')
+
+    expect(withoutPoolish.preferments.poolishEnabled).toBe(false)
+    expect(withoutPoolish.preferments.poolishFlourPercent).toBe(30)
+    expect(isDoughRecipeInput(withoutPoolish)).toBe(true)
+  })
+
   it('makes poolish and biga exclusive and replaces sourdough yeast with LBF', () => {
     const input = createDefaultDoughRecipeInput()
     input.yeast.type = 'LMS'
@@ -108,5 +139,18 @@ describe('dough recipe state transitions', () => {
     const threeFlours = setFlourCount(twoFlours, 3)
     expect(threeFlours.ingredients.flourShares).toEqual([1, 1, 1])
     expect(setFlourCount(threeFlours, 2).ingredients.flourShares).toEqual([40, 60])
+  })
+
+  it('keeps invalid flour shares out of the remembered cache', () => {
+    const twoFlours = setFlourCount(createDefaultDoughRecipeInput(), 2)
+    twoFlours.ingredients.flourShares = [40, 60]
+    const threeFlours = setFlourCount(twoFlours, 3)
+    threeFlours.ingredients.flourShares = [0, 1, 1]
+
+    const result = setFlourCount(threeFlours, 2)
+
+    expect(result.ingredients.flourSharesByCount['3']).toEqual([1, 1, 1])
+    expect(result.ingredients.flourShares).toEqual([40, 60])
+    expect(isDoughRecipeInput(result)).toBe(true)
   })
 })

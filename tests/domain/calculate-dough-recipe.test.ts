@@ -40,6 +40,20 @@ describe('calculateDoughRecipe', () => {
     expect(result.mainDough.flourGrams).toBeLessThan(0)
   })
 
+  it('warns when valid preferment water allocations exceed the recipe water', () => {
+    const input = createDefaultDoughRecipeInput()
+    input.preferments.autolysisEnabled = true
+    input.preferments.autolysisFlourPercent = 20
+    input.preferments.autolysisWaterPercent = 100
+    input.preferments.poolishEnabled = true
+    input.preferments.poolishFlourPercent = 50
+
+    const result = calculateDoughRecipe(input)
+
+    expect(result.mainDough.waterGrams).toBeLessThan(0)
+    expect(result.warnings).toContain('preferment-allocation-exceeded')
+  })
+
   it('calculates autolysis flour and water as documented proportions of recipe flour', () => {
     const input = createDefaultDoughRecipeInput()
     input.preferments.autolysisEnabled = true

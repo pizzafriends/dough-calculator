@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DoughRecipeResult } from '../../domain/dough-recipe/types'
+import type { DoughRecipeInput, DoughRecipeResult } from '../../domain/dough-recipe/types'
 import type { DoughRecipeFieldErrors } from '../../domain/dough-recipe/validation'
 import { DOUGH_WARNING_LABELS, formatMass, formatSaltMass, formatYeastMass } from '../../utils/format-results'
 
@@ -7,6 +7,7 @@ defineProps<{
   result: DoughRecipeResult | null
   errors: DoughRecipeFieldErrors
   targetLabel: string
+  yeastType: DoughRecipeInput['yeast']['type']
 }>()
 </script>
 
@@ -34,7 +35,7 @@ defineProps<{
           <div class="ingredient-list__row"><dt>Water</dt><dd>{{ formatMass(result.mainDough.waterGrams) }}</dd></div>
           <div class="ingredient-list__row"><dt>Salt</dt><dd>{{ formatSaltMass(result.mainDough.saltGrams) }}</dd></div>
           <div v-if="result.mainDough.fatGrams > 0" class="ingredient-list__row"><dt>Fat</dt><dd>{{ formatMass(result.mainDough.fatGrams) }}</dd></div>
-          <div class="ingredient-list__row"><dt>Main dough yeast</dt><dd>{{ formatYeastMass(result.mainDough.yeastGrams, result.preferments.poolish.flourGrams > 0 || result.preferments.biga.flourGrams > 0) }}</dd></div>
+          <div class="ingredient-list__row"><dt>{{ yeastType === 'LMS' || yeastType === 'LML' ? 'Sourdough starter' : 'Main dough yeast' }}</dt><dd>{{ formatYeastMass(result.mainDough.yeastGrams, result.preferments.poolish.flourGrams > 0 || result.preferments.biga.flourGrams > 0) }}</dd></div>
           <div v-if="result.oldDoughInMassGrams > 0" class="ingredient-list__row"><dt>Old dough in</dt><dd>{{ formatMass(result.oldDoughInMassGrams) }}</dd></div>
           <div v-if="result.oldDoughOutMassGrams > 0" class="ingredient-list__row"><dt>Old dough out</dt><dd>{{ formatMass(result.oldDoughOutMassGrams) }}</dd></div>
         </dl>

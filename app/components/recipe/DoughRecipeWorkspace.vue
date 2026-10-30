@@ -8,7 +8,13 @@ import RecipeResultsPanel from './RecipeResultsPanel.vue'
 import { calculateDoughRecipe } from '../../domain/dough-recipe/calculateDoughRecipe'
 import { createDefaultDoughRecipeInput } from '../../domain/dough-recipe/defaults'
 import { isDoughRecipeInput } from '../../domain/dough-recipe/persistence'
-import { applyDoughStyle, setFlourCount, setTemperatureUnit, togglePreferment } from '../../domain/dough-recipe/transitions'
+import {
+  applyDoughStyle,
+  normalizeDisabledDoughRecipeFields,
+  setFlourCount,
+  setTemperatureUnit,
+  togglePreferment
+} from '../../domain/dough-recipe/transitions'
 import { validateDoughRecipeInput } from '../../domain/dough-recipe/validation'
 import type { DoughRecipeInput, DoughStyle, PrefermentType, TemperatureUnit } from '../../domain/dough-recipe/types'
 import { usePersistedCalculatorState } from '../../composables/usePersistedCalculatorState'
@@ -35,23 +41,23 @@ const sourdoughDisabled = computed(() =>
 )
 
 function updateTarget(target: DoughRecipeInput['target']) {
-  recipe.value = { ...recipe.value, target }
+  recipe.value = normalizeDisabledDoughRecipeFields({ ...recipe.value, target })
 }
 
 function updateIngredients(ingredients: DoughRecipeInput['ingredients']) {
-  recipe.value = { ...recipe.value, ingredients }
+  recipe.value = normalizeDisabledDoughRecipeFields({ ...recipe.value, ingredients })
 }
 
 function updateFermentation(fermentation: DoughRecipeInput['fermentation']) {
-  recipe.value = { ...recipe.value, fermentation }
+  recipe.value = normalizeDisabledDoughRecipeFields({ ...recipe.value, fermentation })
 }
 
 function updateYeast(yeast: DoughRecipeInput['yeast']) {
-  recipe.value = { ...recipe.value, yeast }
+  recipe.value = normalizeDisabledDoughRecipeFields({ ...recipe.value, yeast })
 }
 
 function updatePreferments(preferments: DoughRecipeInput['preferments']) {
-  recipe.value = { ...recipe.value, preferments }
+  recipe.value = normalizeDisabledDoughRecipeFields({ ...recipe.value, preferments })
 }
 
 function changeStyle(style: DoughStyle) {
@@ -68,13 +74,13 @@ function changeFlourCount(count: number) {
 
 function changePreferment(preferment: 'autolysis' | PrefermentType) {
   if (preferment === 'autolysis') {
-    recipe.value = {
+    recipe.value = normalizeDisabledDoughRecipeFields({
       ...recipe.value,
       preferments: {
         ...recipe.value.preferments,
         autolysisEnabled: !recipe.value.preferments.autolysisEnabled
       }
-    }
+    })
     return
   }
   recipe.value = togglePreferment(recipe.value, preferment)
@@ -117,6 +123,7 @@ function changePreferment(preferment: 'autolysis' | PrefermentType) {
       :result="result"
       :errors="errors"
       :target-label="targetLabel"
+      :yeast-type="recipe.yeast.type"
     />
   </div>
 </template>

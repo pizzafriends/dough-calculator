@@ -1,4 +1,7 @@
 import type { DoughRecipeInput, DoughStyle, PrefermentType, TemperatureUnit } from './types'
+import { isValidFlourShare } from './persistence'
+import { createDefaultDoughRecipeInput } from './defaults'
+import { validateDoughRecipeInput } from './validation'
 
 function copyInput(input: DoughRecipeInput): DoughRecipeInput {
   return {
@@ -27,6 +30,63 @@ function convertTemperature(value: number, from: TemperatureUnit, to: Temperatur
   return roundToHalfDegree((value - 32) * 5 / 9)
 }
 
+export function normalizeDisabledDoughRecipeFields(input: DoughRecipeInput): DoughRecipeInput {
+  const next = copyInput(input)
+  const defaults = createDefaultDoughRecipeInput()
+  const errors = validateDoughRecipeInput(next, { includeDisabledFields: true })
+
+  if (!next.target.secondGroupEnabled) {
+    if (errors['target.secondBallCount']) {
+      next.target.secondBallCount = defaults.target.secondBallCount
+    }
+    if (errors['target.secondBallWeightGrams']) {
+      next.target.secondBallWeightGrams = defaults.target.secondBallWeightGrams
+    }
+  }
+  if (!next.target.oldDoughInEnabled && errors['target.oldDoughInPercent']) {
+    next.target.oldDoughInPercent = defaults.target.oldDoughInPercent
+  }
+  if (next.ingredients.flourCount === 1 && errors['ingredients.flourShares.0']) {
+    next.ingredients.flourShares[0] = defaults.ingredients.flourShares[0]!
+  }
+  if (!next.ingredients.fatEnabled && errors['ingredients.fatPercent']) {
+    next.ingredients.fatPercent = defaults.ingredients.fatPercent
+  }
+  if (!next.fermentation.controlledEnabled) {
+    if (errors['fermentation.controlledHours']) {
+      next.fermentation.controlledHours = defaults.fermentation.controlledHours
+    }
+    if (errors['fermentation.controlledTemperature']) {
+      next.fermentation.controlledTemperature = convertTemperature(
+        defaults.fermentation.controlledTemperature,
+        defaults.fermentation.temperatureUnit,
+        next.fermentation.temperatureUnit
+      )
+    }
+  }
+  if (!next.preferments.autolysisEnabled) {
+    if (errors['preferments.autolysisFlourPercent']) {
+      next.preferments.autolysisFlourPercent = defaults.preferments.autolysisFlourPercent
+    }
+    if (errors['preferments.autolysisWaterPercent']) {
+      next.preferments.autolysisWaterPercent = defaults.preferments.autolysisWaterPercent
+    }
+  }
+  if (!next.preferments.poolishEnabled) {
+    if (errors['preferments.poolishFlourPercent']) {
+      next.preferments.poolishFlourPercent = defaults.preferments.poolishFlourPercent
+    }
+    if (errors['preferments.poolishHours']) {
+      next.preferments.poolishHours = defaults.preferments.poolishHours
+    }
+  }
+  if (!next.preferments.bigaEnabled && errors['preferments.bigaFlourPercent']) {
+    next.preferments.bigaFlourPercent = defaults.preferments.bigaFlourPercent
+  }
+
+  return next
+}
+
 export function applyDoughStyle(input: DoughRecipeInput, style: DoughStyle): DoughRecipeInput {
   const next = copyInput(input)
   next.style = style
@@ -51,13 +111,13 @@ export function applyDoughStyle(input: DoughRecipeInput, style: DoughStyle): Dou
   if (style === 'Teglia') next.ingredients.fatPercent = 2.5
   next.preferments.poolishEnabled = false
   next.preferments.bigaEnabled = false
-  return next
+  return normalizeDisabledDoughRecipeFields(next)
 }
 
 export function setTemperatureUnit(input: DoughRecipeInput, unit: TemperatureUnit): DoughRecipeInput {
   const next = copyInput(input)
   const currentUnit = next.fermentation.temperatureUnit
-  if (currentUnit === unit) return next
+  if (currentUnit === unit) return normalizeDisabledDoughRecipeFields(next)
 
   next.fermentation.roomTemperature = convertTemperature(
     next.fermentation.roomTemperature,
@@ -70,20 +130,22 @@ export function setTemperatureUnit(input: DoughRecipeInput, unit: TemperatureUni
     unit
   )
   next.fermentation.temperatureUnit = unit
-  return next
+  return normalizeDisabledDoughRecipeFields(next)
 }
 
 export function setFlourCount(input: DoughRecipeInput, flourCount: number): DoughRecipeInput {
   const next = copyInput(input)
   const currentCount = String(next.ingredients.flourCount)
   const nextCount = String(flourCount)
-  next.ingredients.flourSharesByCount[currentCount] = [...next.ingredients.flourShares]
+  if (next.ingredients.flourShares.every(isValidFlourShare)) {
+    next.ingredients.flourSharesByCount[currentCount] = [...next.ingredients.flourShares]
+  }
   next.ingredients.flourCount = flourCount
   next.ingredients.flourShares = [
     ...(next.ingredients.flourSharesByCount[nextCount] ?? Array.from({ length: flourCount }, () => 1))
   ]
   next.ingredients.flourSharesByCount[nextCount] = [...next.ingredients.flourShares]
-  return next
+  return normalizeDisabledDoughRecipeFields(next)
 }
 
 export function togglePreferment(input: DoughRecipeInput, preferment: PrefermentType): DoughRecipeInput {
@@ -96,5 +158,5 @@ export function togglePreferment(input: DoughRecipeInput, preferment: Preferment
     next.preferments[`${other}Enabled`] = false
     if (next.yeast.type === 'LMS' || next.yeast.type === 'LML') next.yeast.type = 'LBF'
   }
-  return next
+  return normalizeDisabledDoughRecipeFields(next)
 }

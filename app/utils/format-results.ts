@@ -37,6 +37,6 @@ export function formatPercent(value: number): string {
 
 export const DOUGH_WARNING_LABELS: Record<DoughRecipeWarning, string> = {
   'invalid-flour-share-total': 'Flour shares must total 100% to show individual flour quantities.',
-  'preferment-allocation-exceeded': 'Preferment flour allocations exceed 100% of the recipe flour.',
+  'preferment-allocation-exceeded': 'Preferment flour or water allocations exceed the available recipe amounts.',
   'excessive-leavening': 'The preferment leaves less than 25% of the calculated yeast for the main dough.'
 }
