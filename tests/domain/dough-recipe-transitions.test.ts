@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { createDefaultDoughRecipeInput } from '../../app/domain/dough-recipe/defaults'
 import {
@@ -8,6 +9,25 @@ import {
 } from '../../app/domain/dough-recipe/transitions'
 
 describe('dough recipe state transitions', () => {
+  it('supports reactive inputs and copies nested flour-share arrays independently', () => {
+    const input = reactive(createDefaultDoughRecipeInput())
+    input.target.firstBallCount = Number.NaN
+    const result = setFlourCount(input, 2)
+
+    result.ingredients.flourShares[0] = 55
+    result.ingredients.flourSharesByCount['2']![0] = 66
+
+    expect(Number.isNaN(result.target.firstBallCount)).toBe(true)
+    expect(input.ingredients.flourCount).toBe(1)
+    expect(input.ingredients.flourShares).toEqual([1])
+    expect(input.ingredients.flourSharesByCount['2']).toBeUndefined()
+    expect(result.ingredients.flourShares).toEqual([55, 1])
+    expect(result.ingredients.flourSharesByCount['2']).toEqual([66, 1])
+    expect(() => applyDoughStyle(input, 'Teglia')).not.toThrow()
+    expect(() => setTemperatureUnit(input, 'F')).not.toThrow()
+    expect(() => togglePreferment(input, 'poolish')).not.toThrow()
+  })
+
   it('starts with the documented clean Verace defaults', () => {
     const input = createDefaultDoughRecipeInput()
 

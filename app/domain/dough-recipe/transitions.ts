@@ -1,7 +1,20 @@
 import type { DoughRecipeInput, DoughStyle, PrefermentType, TemperatureUnit } from './types'
 
 function copyInput(input: DoughRecipeInput): DoughRecipeInput {
-  return structuredClone(input)
+  return {
+    ...input,
+    target: { ...input.target },
+    ingredients: {
+      ...input.ingredients,
+      flourShares: [...input.ingredients.flourShares],
+      flourSharesByCount: Object.fromEntries(
+        Object.entries(input.ingredients.flourSharesByCount).map(([count, shares]) => [count, [...shares]])
+      )
+    },
+    fermentation: { ...input.fermentation },
+    yeast: { ...input.yeast },
+    preferments: { ...input.preferments }
+  }
 }
 
 function roundToHalfDegree(value: number): number {
