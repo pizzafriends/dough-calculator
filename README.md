@@ -1,75 +1,32 @@
-# Nuxt Minimal Starter
+# Dough Notes
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A phone-first pizza dough calculator with recipe planning, flour-strength blending, tin-mass estimates, and water-temperature guidance. Calculations run in the browser, and the latest inputs for each calculator are saved locally on the device.
 
-## Setup
+## Development
 
-Make sure to install dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
+```sh
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Checks
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+```sh
+pnpm typecheck
+pnpm test
+pnpm test:e2e
 ```
 
-Locally preview production build:
+The Playwright suite builds and serves the generated static app, then checks the routes, local input restoration, and offline calculation. Install Playwright's Chromium once if it is not already available:
 
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+```sh
+pnpm exec playwright install chromium
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Static deployment
+
+```sh
+pnpm generate
+```
+
+Deploy the contents of `.output/public/` at the site root. The app is client-only and includes prerendered entry files for all calculator routes. The PWA service worker can support offline navigation after an online visit has installed and cached the app; first use still requires connectivity. No server-side calculations or external network services are used.

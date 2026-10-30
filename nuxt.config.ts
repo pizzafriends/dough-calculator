@@ -1,5 +1,51 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false,
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true }
+  devtools: { enabled: true },
+  css: ['~/assets/css/main.css'],
+  modules: ['@vite-pwa/nuxt'],
+  app: {
+    head: {
+      title: 'Dough Notes — Pizza dough calculator',
+      meta: [
+        { name: 'description', content: 'A baker-focused pizza dough calculator, ready for your next bake.' },
+        { name: 'theme-color', content: '#f5f2eb' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
+      ],
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
+    }
+  },
+  pwa: {
+    registerType: 'prompt',
+    manifest: {
+      name: 'Dough Notes',
+      short_name: 'Dough Notes',
+      description: 'A baker-focused pizza dough calculator.',
+      theme_color: '#f5f2eb',
+      background_color: '#f5f2eb',
+      display: 'standalone',
+      start_url: '/',
+      scope: '/',
+      icons: [
+        { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+      ]
+    },
+    workbox: {
+      globPatterns: ['**/*.{css,html,ico,js,png,svg,webmanifest,woff2}'],
+      navigateFallback: '/',
+      cleanupOutdatedCaches: true
+    },
+    devOptions: { enabled: false }
+  },
+  nitro: {
+    preset: 'static',
+    prerender: {
+      routes: ['/', '/tools/flour-strength', '/tools/tin-mass', '/tools/water-temperature'],
+      crawlLinks: true,
+      failOnError: true
+    }
+  }
 })
