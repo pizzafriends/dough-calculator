@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { calculateDoughRecipe } from '../../app/domain/dough-recipe/calculateDoughRecipe'
 import { createDefaultDoughRecipeInput } from '../../app/domain/dough-recipe/defaults'
 import { applyDoughStyle } from '../../app/domain/dough-recipe/transitions'
+import { validateDoughRecipeInput } from '../../app/domain/dough-recipe/validation'
 
 describe('calculateDoughRecipe', () => {
   it('calculates the documented default Verace recipe without rounding intermediates', () => {
@@ -51,6 +52,32 @@ describe('calculateDoughRecipe', () => {
     const result = calculateDoughRecipe(input)
 
     expect(result.mainDough.waterGrams).toBeLessThan(0)
+    expect(result.warnings).toContain('preferment-allocation-exceeded')
+  })
+
+  it('warns when sourdough flour exceeds the available recipe flour', () => {
+    const input = createDefaultDoughRecipeInput()
+    input.style = 'Teglia'
+    input.target.firstBallWeightGrams = 15
+    input.ingredients.hydrationPercent = 100
+    input.ingredients.saltPercent = 6
+    input.ingredients.fatEnabled = true
+    input.ingredients.fatPercent = 10
+    input.fermentation.roomTemperature = 40
+    input.fermentation.roomHours = 1
+    input.yeast.type = 'LMS'
+    input.yeast.adjustmentPercent = 50
+    input.preferments.autolysisEnabled = true
+    input.preferments.autolysisFlourPercent = 100
+
+    expect(validateDoughRecipeInput(input)).toEqual({})
+
+    const result = calculateDoughRecipe(input)
+
+    expect(result.totalFlourGrams).toBeCloseTo(-0.521, 3)
+    expect(result.preferments.autolysis.flourGrams).toBeLessThan(0)
+    expect(result.mainDough.flourGrams).toBeCloseTo(0, 10)
+    expect(result.mainDough.waterGrams).toBeGreaterThan(0)
     expect(result.warnings).toContain('preferment-allocation-exceeded')
   })
 
