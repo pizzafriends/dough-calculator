@@ -18,7 +18,7 @@ export function usePersistedCalculatorState<T>(
   })
 
   watch(state, (value) => {
-    if (hasLoaded.value) stateStore.save(key, value)
+    if (hasLoaded.value && isValid(value)) stateStore.save(key, value)
   }, { deep: true })
 
   return state
